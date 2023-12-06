@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="guestcmt.css">
+    <title>React App</title>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      let customers = [];
+      const capacity = 25;
+      let seatsLeft = 25;
+
+      const handleFormSubmit = (event) => {
+        event.preventDefault();
+
+        const count = parseInt(event.target.count.value, 10);
+        const name = event.target.name.value.trim();
+        const phone = event.target.phone.value.trim();
+
+        // Validate guest count
+        if (isNaN(count) || count <= 0) {
+          alert('Guest count must be a positive number.');
+          return;
+        }
+
+        // Validate duplicate entry
+        if (customers.some((customer) => customer.name === name && !customer.checkOut)) {
+          alert('Duplicate entry. Please check the name.');
+          return;
+        }
+
+        if (name && phone && seatsLeft >= count) {
+          const newEntry = {
+            count,
+            name,
+            phone,
+            checkIn: new Date().toLocaleString(),
+            checkOut: '',
+            status: 'Checked In',
+            id: Date.now(),
+          };
+
+          customers.unshift(newEntry);
+          seatsLeft -= count;
+
+          // Clear form inputs
+          event.target.reset();
+
+          // Force re-render with the updated customers and seatsLeft
+          rootElement.render(<App />);
+        } else {
+          alert('Invalid input or not enough seats left.');
+        }
+      };
+
+      const handleCheckout = (id) => {
+        const customer = customers.find((customer) => customer.id === id);
+
+        if (customer.checkOut) {
+          alert('Already checked out.');
+          return;
+        }
+
+        customer.checkOut = new Date().toLocaleString();
+        customer.status = 'Checked Out';
+        seatsLeft += customer.count;
+
+        // Force re-render with the updated customers and seatsLeft
+        rootElement.render(<App />);
+      };
+
+      const handleRemoveEntry = (id) => {
+        const customer = customers.find((customer) => customer.id === id);
+
+        if (!customer.checkOut) {
+          seatsLeft += customer.count;
+        }
+
+        customers = customers.filter((customer) => customer.id !== id);
+
+        // Force re-render with the updated customers and seatsLeft
+        rootElement.render(<App />);
+      };
+
+      const App = () => (
+        <div className="App" style={{ textAlign: "center" }}>
+          <div>
+            <h2>Total Capacity: {capacity}</h2>
+            <h2>Seats Left: {seatsLeft}</h2>
+          </div>
+
+          <form onSubmit={handleFormSubmit}>
+            <input type="number" id="count" name="count" placeholder="Count" required />
+            <br />
+            <input type="text" id="name" name="name" placeholder="Name" required />
+            <br />
+            <input type="tel" id="phone" name="phone" placeholder="Phone" required />
+            <br />
+            <button type="submit">Check-in</button>
+          </form>
+
+          <table border="1px" style={{ margin: "auto" }}>
+            <thead>
+              <tr>
+                <th>Count</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Status</th>
+                <th>Remove Entry</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customers.map((customer) => (
+                <tr key={customer.id}>
+                  <td>{customer.count}</td>
+                  <td>{customer.name}</td>
+                  <td>{customer.phone}</td>
+                  <td>{customer.checkIn}</td>
+                  <td>
+                    {customer.checkOut ? customer.checkOut : (
+                      <button onClick={() => handleCheckout(customer.id)}>
+                        Check to Checkout
+                      </button>
+                    )}
+                  </td>
+                  <td>{customer.status}</td>
+                  <td>
+                    <button onClick={() => handleRemoveEntry(customer.id)}>
+                      Remove Entry
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
+      const rootElement = ReactDOM.createRoot(document.getElementById("root"));
+      rootElement.render(<App />);
+    </script>
+  </body>
+</html>

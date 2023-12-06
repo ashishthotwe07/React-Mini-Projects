@@ -1,0 +1,15 @@
+.input-group {
+    display: flex;
+  }
+  
+  .input-group .form-control {
+    width: 200px;
+    font-size: 18px; /* Adjust font size as needed */
+    margin-right: 5px;
+  }
+  
+  /* Add the following style to adjust the submit button */
+  .btn-submit {
+    font-size: 18px; /* Adjust font size as needed */
+  }
+  
